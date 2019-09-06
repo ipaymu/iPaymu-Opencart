@@ -1,1 +1,1 @@
-# iPaymu-Opencart-2.X
+# iPaymu-Opencart-1.X
