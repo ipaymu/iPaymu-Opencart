@@ -1,20 +1,19 @@
 <?php
 
-class ControllerPaymentIpaymu extends Controller {
+class ControllerExtensionPaymentIpaymu extends Controller
+{
 
-    public function index() {
-        $this->language->load('payment/ipaymu');
-        $data['action'] = $this->url->link('payment/ipaymu/send');
+    public function index()
+    {
+        $this->language->load('extension/payment/ipaymu');
+        $data['action'] = $this->url->link('extension/payment/ipaymu/send');
         $data['button_confirm'] = $this->language->get('button_confirm');
 
-        if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/payment/ipaymu.tpl')) {
-            return $this->load->view($this->config->get('config_template') . '/template/payment/ipaymu.tpl', $data);
-        } else {
-            return $this->load->view('default/template/payment/ipaymu.tpl', $data);
-        }
+        return $this->load->view('extension/payment/ipaymu', $data);
     }
 
-    private function simpleXor($string, $password) {
+    private function simpleXor($string, $password)
+    {
         $data = array();
 
         for ($i = 0; $i < strlen($password); $i++) {
@@ -30,15 +29,16 @@ class ControllerPaymentIpaymu extends Controller {
         return $output;
     }
 
-    public function send() {
+    public function send()
+    {
         $this->load->model('checkout/order');
         $order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
-        $data['ap_merchant'] = $this->config->get('ipaymu_merchant');
+        $data['ap_merchant'] = $this->config->get('payment_ipaymu_merchant');
         $data['url_web'] = $this->url->link('common/home');
-        $data['ap_security'] = $this->config->get('ipaymu_security');
-        $data['ap_paypal'] = $this->config->get('ipaymu_paypal');
-        $data['ap_ipaymu_rate'] = $this->config->get('ipaymu_rate');
-        $data['ap_inv_paypal'] = $this->config->get('ipaymu_inv_paypal');
+        $data['ap_security'] = $this->config->get('payment_ipaymu_security');
+        $data['ap_paypal'] = $this->config->get('payment_ipaymu_paypal');
+        $data['ap_ipaymu_rate'] = $this->config->get('payment_ipaymu_rate');
+        $data['ap_inv_paypal'] = $this->config->get('payment_ipaymu_inv_paypal');
         $data['ap_amount'] = $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value'], false);
         $data['ap_currency'] = $order_info['currency_code'];
         $data['ap_purchasetype'] = 'Item';
@@ -47,7 +47,7 @@ class ControllerPaymentIpaymu extends Controller {
 
         $security_code = $data['ap_security'] . $this->session->data['order_id'];
 
-        $data = array();
+        // $data = array();
         $data['orderid'] = $this->session->data['order_id'];
         $def_curr = $this->config->get('config_currency');
         $data['jumlah'] = $def_curr == 'IDR' ? $order_info['total'] : $this->currency->convert($order_info['total'], $order_info['currency_code'], 'IDR');
@@ -61,19 +61,19 @@ class ControllerPaymentIpaymu extends Controller {
 
         $data['crypt'] = base64_encode($this->simpleXor(utf8_decode(implode('&', $crypt_data)), $security_code));
 
-        $data['ap_returnurl'] = str_replace('&amp;', '&', $this->url->link('payment/ipaymu/success', 'order_id=' . $this->session->data['order_id'] . '&crypt=' . $data['crypt']));
+        $data['ap_returnurl'] = str_replace('&amp;', '&', $this->url->link('extension/payment/ipaymu/success', 'order_id=' . $this->session->data['order_id'] . '&crypt=' . $data['crypt']));
         $data['ap_notifyurl'] = str_replace('&amp;', '&', $this->url->link('checkout/checkout'));
 
         $data['ap_cancelurl'] = $this->url->link('checkout/checkout', '', 'SSL');
 
-        $_SESSION['crypt'] = $data['crypt'];
+        $this->session->data['crypt'] = $data['crypt'];
 
         $url = 'https://my.ipaymu.com/payment.htm';
 
         // Prepare Parameters
         $pprate = isset($data['ap_ipaymu_rate']) && !empty($data['ap_ipaymu_rate']) ? $data['ap_ipaymu_rate'] : 1;
         $params = array(
-            'key' => '' . $this->config->get('ipaymu_security') . '', // API Key Merchant / Penjual
+            'key' => '' . $this->config->get('payment_ipaymu_security') . '', // API Key Merchant / Penjual
             'action' => 'payment',
             'product' => 'Order #' . $data['orderid'] . '',
             'price' => '' . $data['jumlah'] . '', // Total Harga
@@ -82,11 +82,14 @@ class ControllerPaymentIpaymu extends Controller {
             'ureturn' => '' . $data['ap_returnurl'] . '',
             'unotify' => '' . $data['ap_notifyurl'] . '',
             'ucancel' => '' . $data['ap_cancelurl'] . '',
+            'buyer_name'    => "{$this->customer->getFirstName()} {$this->customer->getLastName()}",
+            'buyer_phone'   => $this->customer->getTelephone(),
+            'buyer_email'   => $this->customer->getEmail(),
             /* Parameter untuk pembayaran lain menggunakan PayPal 
              * ----------------------------------------------- */
             'invoice_number' => uniqid($data['ap_inv_paypal']), // Optional
             'paypal_email' => $data['ap_paypal'],
-            'paypal_price' => round($data['ap_amount'] / $data['ap_ipaymu_rate'], 2), // Total harga dalam kurs USD
+            'paypal_price' => @round($data['ap_amount'] / $data['ap_ipaymu_rate'], 2) ?? $data['ap_amount'], // Total harga dalam kurs USD
             /* ----------------------------------------------- */
             'format' => 'json' // Format: xml / json. Default: xml 
         );
@@ -115,45 +118,45 @@ class ControllerPaymentIpaymu extends Controller {
             if (isset($result['url']))
                 header('location: ' . $result['url']);
             else {
-                echo "Request Error " . $result['Status'] . ": " . $result['Keterangan'];
+                echo $request;
             }
         }
         //close connection
         curl_close($ch);
     }
 
-    public function success() {
-        $datane = array();
+    public function success()
+    {
+        $data = array();
+        $cryptSession = $this->session->data['crypt'];
+
         foreach ($_REQUEST as $key => $value) {
-            $datane[$key] = $value;
+            $data[$key] = $value;
         }
+        $data['crypt'] = str_replace(" ", "+", $data['crypt']);
 
-        if (isset($_SESSION['crypt'])) {
-            if (isset($datane['crypt']) && ($datane['crypt'] == $_SESSION['crypt'])) {
-                unset($_SESSION['crypt']);
-                $this->load->model('checkout/order');
+        if (isset($cryptSession) && isset($data['crypt']) && ($data['crypt'] == $cryptSession)) {
+            unset($cryptSession);
+            $this->load->model('checkout/order');
 
-                if($datane['status'] == 'berhasil') {
-                	$message = 'iPaymu with transaction id: '.$datane['trx_id'];
-                	if($datane['ref_no']) {
-                		$message .= ' ,ref. number: '.$datane['ref_no'];
-                	}
-                	$this->model_checkout_order->addOrderHistory($datane['order_id'], 15, $message);
-                } elseif ($datane['status'] == 'pending'){
-                	$message = 'Non Member iPaymu with transaction id: '.$datane['trx_id'];
-                	$this->model_checkout_order->addOrderHistory($datane['order_id'], 1, $message);
-                } elseif ($datane['status'] == 'gagal'){
-                	$message = 'iPaymu with transaction id: '.$datane['trx_id'];
-                	if($datane['ref_no']) {
-                		$message .= ' ,ref. number: '.$datane['ref_no'];
-                	}
-                	$this->model_checkout_order->addOrderHistory($datane['order_id'], 10, $message);
+            if ($data['status'] == 'berhasil') {
+                $message = 'iPaymu with transaction id: ' . $data['trx_id'];
+                if ($data['ref_no']) {
+                    $message .= ' ,ref. number: ' . $data['ref_no'];
                 }
-                $this->response->redirect($this->url->link('checkout/success'));
+                $this->model_checkout_order->addOrderHistory($data['order_id'], 15, $message);
+            } elseif ($data['status'] == 'pending') {
+                $message = 'Non Member iPaymu with transaction id: ' . $data['trx_id'];
+                $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
+            } elseif ($data['status'] == 'gagal') {
+                $message = 'iPaymu with transaction id: ' . $data['trx_id'];
+                if ($data['ref_no']) {
+                    $message .= ' ,ref. number: ' . $data['ref_no'];
+                }
+                $this->model_checkout_order->addOrderHistory($data['order_id'], 10, $message);
             }
+
+            $this->response->redirect($this->url->link('checkout/success'));
         }
     }
-
 }
-
-?>
