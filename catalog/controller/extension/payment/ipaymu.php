@@ -85,11 +85,13 @@ class ControllerExtensionPaymentIpaymu extends Controller
             'buyer_name'    => "{$this->customer->getFirstName()} {$this->customer->getLastName()}",
             'buyer_phone'   => $this->customer->getTelephone(),
             'buyer_email'   => $this->customer->getEmail(),
+            'reference_id'   => $data['orderid'],
+            
             /* Parameter untuk pembayaran lain menggunakan PayPal 
              * ----------------------------------------------- */
-            'invoice_number' => uniqid($data['ap_inv_paypal']), // Optional
-            'paypal_email' => $data['ap_paypal'],
-            'paypal_price' => @round($data['ap_amount'] / $data['ap_ipaymu_rate'], 2) ?? $data['ap_amount'], // Total harga dalam kurs USD
+            // 'invoice_number' => uniqid($data['ap_inv_paypal']), // Optional
+            // 'paypal_email' => $data['ap_paypal'],
+            // 'paypal_price' => @round($data['ap_amount'] / $data['ap_ipaymu_rate'], 2) ?? $data['ap_amount'], // Total harga dalam kurs USD
             /* ----------------------------------------------- */
             'format' => 'json' // Format: xml / json. Default: xml 
         );
@@ -133,30 +135,37 @@ class ControllerExtensionPaymentIpaymu extends Controller
         foreach ($_REQUEST as $key => $value) {
             $data[$key] = $value;
         }
-        $data['crypt'] = str_replace(" ", "+", $data['crypt']);
 
-        if (isset($cryptSession) && isset($data['crypt']) && ($data['crypt'] == $cryptSession)) {
-            unset($cryptSession);
-            $this->load->model('checkout/order');
-
-            if ($data['status'] == 'berhasil') {
-                $message = 'iPaymu with transaction id: ' . $data['trx_id'];
-                if ($data['ref_no']) {
-                    $message .= ' ,ref. number: ' . $data['ref_no'];
-                }
-                $this->model_checkout_order->addOrderHistory($data['order_id'], 15, $message);
-            } elseif ($data['status'] == 'pending') {
-                $message = 'Non Member iPaymu with transaction id: ' . $data['trx_id'];
-                $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
-            } elseif ($data['status'] == 'gagal') {
-                $message = 'iPaymu with transaction id: ' . $data['trx_id'];
-                if ($data['ref_no']) {
-                    $message .= ' ,ref. number: ' . $data['ref_no'];
-                }
-                $this->model_checkout_order->addOrderHistory($data['order_id'], 10, $message);
-            }
-
+        if (empty($data['crypt']) {
             $this->response->redirect($this->url->link('checkout/success'));
+        } else {
+            
+        
+            $data['crypt'] = str_replace(" ", "+", $data['crypt']);
+    
+            if (isset($cryptSession) && isset($data['crypt']) && ($data['crypt'] == $cryptSession)) {
+                unset($cryptSession);
+                $this->load->model('checkout/order');
+    
+                if ($data['status'] == 'berhasil') {
+                    $message = 'iPaymu with transaction id: ' . $data['trx_id'];
+                    if ($data['ref_no']) {
+                        $message .= ' ,ref. number: ' . $data['ref_no'];
+                    }
+                    $this->model_checkout_order->addOrderHistory($data['order_id'], 15, $message);
+                } elseif ($data['status'] == 'pending') {
+                    $message = 'Non Member iPaymu with transaction id: ' . $data['trx_id'];
+                    $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
+                } elseif ($data['status'] == 'gagal') {
+                    $message = 'iPaymu with transaction id: ' . $data['trx_id'];
+                    if ($data['ref_no']) {
+                        $message .= ' ,ref. number: ' . $data['ref_no'];
+                    }
+                    $this->model_checkout_order->addOrderHistory($data['order_id'], 10, $message);
+                }
+    
+                $this->response->redirect($this->url->link('checkout/success'));
+            }
         }
     }
 }
