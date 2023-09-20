@@ -136,7 +136,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
             $data[$key] = $value;
         }
 
-        if (empty($data['crypt']) {
+        if (empty($data['crypt'])) {
             $this->response->redirect($this->url->link('checkout/success'));
         } else {
             
