@@ -85,15 +85,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
             'buyer_name'    => "{$this->customer->getFirstName()} {$this->customer->getLastName()}",
             'buyer_phone'   => $this->customer->getTelephone(),
             'buyer_email'   => $this->customer->getEmail(),
-            'reference_id'   => $data['orderid'],
-            
-            /* Parameter untuk pembayaran lain menggunakan PayPal 
-             * ----------------------------------------------- */
-            // 'invoice_number' => uniqid($data['ap_inv_paypal']), // Optional
-            // 'paypal_email' => $data['ap_paypal'],
-            // 'paypal_price' => @round($data['ap_amount'] / $data['ap_ipaymu_rate'], 2) ?? $data['ap_amount'], // Total harga dalam kurs USD
-            /* ----------------------------------------------- */
-            'format' => 'json' // Format: xml / json. Default: xml 
+            'reference_id'   => $data['orderid']
         );
 
 
