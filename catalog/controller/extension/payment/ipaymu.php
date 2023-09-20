@@ -68,7 +68,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
 
         $this->session->data['crypt'] = $data['crypt'];
 
-        $url = 'https://my.ipaymu.com/payment.htm';
+        $url = 'https://my.ipaymu.com/payment';
 
         // Prepare Parameters
         $pprate = isset($data['ap_ipaymu_rate']) && !empty($data['ap_ipaymu_rate']) ? $data['ap_ipaymu_rate'] : 1;
