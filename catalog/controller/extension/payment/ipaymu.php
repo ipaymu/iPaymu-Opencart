@@ -85,7 +85,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
             'buyer_name'    => "{$this->customer->getFirstName()} {$this->customer->getLastName()}",
             'buyer_phone'   => $this->customer->getTelephone(),
             'buyer_email'   => $this->customer->getEmail(),
-            'reference_id'   => $data['orderid']
+            'reference_id'   => '' . $data['orderid'] . '',
         );
 
 
