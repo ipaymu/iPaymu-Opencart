@@ -110,11 +110,11 @@ class ControllerExtensionPaymentIpaymu extends Controller
 
             $result = json_decode($request, true);
 
-            if (isset($result['url']))
+            if (isset($result['url'])) {
                 $message = 'Transaction via iPaymu';
                 $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
                 header('location: ' . $result['url']);
-            else {
+            } else {
                 echo $request;
             }
         }
