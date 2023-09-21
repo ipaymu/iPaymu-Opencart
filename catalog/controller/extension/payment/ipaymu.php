@@ -86,6 +86,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
             'buyer_phone'   => $this->customer->getTelephone(),
             'buyer_email'   => $this->customer->getEmail(),
             'reference_id'   => '' . $data['orderid'] . '',
+            'format' => 'json'
         );
 
 
