@@ -111,6 +111,8 @@ class ControllerExtensionPaymentIpaymu extends Controller
             $result = json_decode($request, true);
 
             if (isset($result['url']))
+                $message = 'Transaction via iPaymu';
+                $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
                 header('location: ' . $result['url']);
             else {
                 echo $request;
@@ -130,6 +132,9 @@ class ControllerExtensionPaymentIpaymu extends Controller
         }
 
         if (empty($data['crypt'])) {
+            // $message = 'Transaction via iPaymu';
+            // $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
+            
             $this->response->redirect($this->url->link('checkout/success'));
         } else {
             
@@ -147,7 +152,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
                     }
                     $this->model_checkout_order->addOrderHistory($data['order_id'], 15, $message);
                 } elseif ($data['status'] == 'pending') {
-                    $message = 'Non Member iPaymu with transaction id: ' . $data['trx_id'];
+                    $message = 'iPaymu with transaction id: ' . $data['trx_id'];
                     $this->model_checkout_order->addOrderHistory($data['order_id'], 1, $message);
                 } elseif ($data['status'] == 'gagal') {
                     $message = 'iPaymu with transaction id: ' . $data['trx_id'];
