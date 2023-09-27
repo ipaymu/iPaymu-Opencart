@@ -211,16 +211,16 @@ class ControllerExtensionPaymentIpaymu extends Controller
             $orderId = $data['reference_id'];
         }
         if ($data['status'] == 'berhasil') {
-            $message = 'Payment Success - ' . $data['trx_id'];
+            $message = 'Payment Success - iPaymu ID ' . $data['trx_id'];
             $this->model_checkout_order->addOrderHistory($orderId, 15, $message);
         } else if ($data['status'] == 'expired') {
-            $message = 'Payment Expired - ' . $data['trx_id'];
+            $message = 'Payment Expired - iPaymu ID ' . $data['trx_id'];
             $this->model_checkout_order->addOrderHistory($orderId, 7, $message);
         } else if ($data['status'] == 'pending') {
-            $message = 'Payment Pending - ' . $data['trx_id'];
+            $message = 'Payment Pending - iPaymu ID ' . $data['trx_id'];
             $this->model_checkout_order->addOrderHistory($orderId, 1, $message);
         } else {
-            $message = 'Payment Failed - ' . $data['trx_id'];
+            $message = 'Payment Failed - iPaymu ID ' . $data['trx_id'];
             $this->model_checkout_order->addOrderHistory($orderId, 10, $message);
         }
 
