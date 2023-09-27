@@ -61,8 +61,12 @@ class ControllerExtensionPaymentIpaymu extends Controller
 
         $data['crypt'] = base64_encode($this->simpleXor(utf8_decode(implode('&', $crypt_data)), $security_code));
 
-        $data['ap_returnurl'] = str_replace('&amp;', '&', $this->url->link('extension/payment/ipaymu/success', 'order_id=' . $this->session->data['order_id'] . '&crypt=' . $data['crypt']));
-        $data['ap_notifyurl'] = str_replace('&amp;', '&', $this->url->link('checkout/checkout'));
+        // $data['ap_returnurl'] = str_replace('&amp;', '&', $this->url->link('extension/payment/ipaymu/success', 'order_id=' . $this->session->data['order_id'] . '&crypt=' . $data['crypt']));
+        // $data['ap_notifyurl'] = str_replace('&amp;', '&', $this->url->link('checkout/checkout'));
+
+        $successUrl = $this->url->link('checkout/success&');
+        $data['ap_returnurl'] = $successUrl;
+        $data['ap_notifyurl'] = $this->url->link('extension/payment/ipaymu/payment_notification') . '&order_id=' . $this->session->data['order_id'];
 
         $data['ap_cancelurl'] = $this->url->link('checkout/checkout', '', 'SSL');
 
@@ -111,7 +115,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
             $result = json_decode($request, true);
 
             if (isset($result['url'])) {
-                $message = 'Transaction via iPaymu';
+                $message = 'Transaction via iPaymu ' . $result['url'];
                 $this->load->model('checkout/order');
                 $this->model_checkout_order->addOrderHistory($data['orderid'], 1, $message);
                 header('location: ' . $result['url']);
@@ -166,5 +170,56 @@ class ControllerExtensionPaymentIpaymu extends Controller
                 $this->response->redirect($this->url->link('checkout/success'));
             }
         }
+    }
+
+    // Response early with 200 OK status for Midtrans notification & handle HTTP GET
+    public function earlyResponse(){
+        if ( $_SERVER['REQUEST_METHOD'] == 'GET' ){
+          die('This endpoint should not be opened using browser (HTTP GET). This endpoint is for Midtrans notification URL (HTTP POST)');
+          exit();
+        }
+    
+        ob_start();
+    
+        $input_source = "php://input";
+        $raw_notification = json_decode(file_get_contents($input_source), true);
+        echo "Notification Received: \n";
+        print_r($raw_notification);
+        
+        header('Connection: close');
+        header('Content-Length: '.ob_get_length());
+        ob_end_flush();
+        ob_flush();
+        flush();
+    }
+
+    public function payment_notification() {
+         // $this->earlyResponse();
+         //    $this->load->model('checkout/order');
+        $data = array();
+        foreach ($_REQUEST as $key => $value) {
+            $data[$key] = $value;
+        }
+
+        if (!empty($data['order_id']) {
+            $orderId = $data['order_id'];
+        } else {
+            $orderId = $data['reference_id'];
+        }
+        if ($data['status'] == 'berhasil') {
+            $message = 'Payment Success - ' . $data['trx_id'];
+            $this->model_checkout_order->addOrderHistory($orderId, 15, $message);
+        } else if ($data['status'] == 'expired') {
+            $message = 'Payment Expired - ' . $data['trx_id'];
+            $this->model_checkout_order->addOrderHistory($orderId, 10, $message);
+        } else if ($data['status'] == 'pending') {
+            $message = 'Payment Pending - ' . $data['trx_id'];
+            $this->model_checkout_order->addOrderHistory($orderId, 1, $message);
+        } else {
+            $message = 'Payment Failed - ' . $data['trx_id'];
+            $this->model_checkout_order->addOrderHistory($orderId, 1, $message);
+        }
+
+        echo 'received with order ID ' . $orderId;
     }
 }
