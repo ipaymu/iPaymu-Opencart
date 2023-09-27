@@ -212,7 +212,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
         }
         if ($data['status'] == 'berhasil') {
             $message = 'Payment Success - iPaymu ID ' . $data['trx_id'];
-            $this->model_checkout_order->addOrderHistory($orderId, 15, $message);
+            $this->model_checkout_order->addOrderHistory($orderId, 2, $message);
         } else if ($data['status'] == 'expired') {
             $message = 'Payment Expired - iPaymu ID ' . $data['trx_id'];
             $this->model_checkout_order->addOrderHistory($orderId, 7, $message);
