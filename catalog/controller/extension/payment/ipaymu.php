@@ -201,7 +201,7 @@ class ControllerExtensionPaymentIpaymu extends Controller
             $data[$key] = $value;
         }
 
-        if (!empty($data['order_id']) {
+        if (!empty($data['order_id'])) {
             $orderId = $data['order_id'];
         } else {
             $orderId = $data['reference_id'];
