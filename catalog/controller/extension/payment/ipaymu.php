@@ -195,7 +195,11 @@ class ControllerExtensionPaymentIpaymu extends Controller
 
     public function payment_notification() {
          // $this->earlyResponse();
-         //    $this->load->model('checkout/order');
+        if ( $_SERVER['REQUEST_METHOD'] == 'GET' ){
+          die('This endpoint should not be opened using browser (HTTP GET). This endpoint is for Midtrans notification URL (HTTP POST)');
+          exit();
+        }
+        $this->load->model('checkout/order');
         $data = array();
         foreach ($_REQUEST as $key => $value) {
             $data[$key] = $value;
