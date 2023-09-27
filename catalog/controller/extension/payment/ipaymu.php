@@ -215,13 +215,13 @@ class ControllerExtensionPaymentIpaymu extends Controller
             $this->model_checkout_order->addOrderHistory($orderId, 15, $message);
         } else if ($data['status'] == 'expired') {
             $message = 'Payment Expired - ' . $data['trx_id'];
-            $this->model_checkout_order->addOrderHistory($orderId, 10, $message);
+            $this->model_checkout_order->addOrderHistory($orderId, 7, $message);
         } else if ($data['status'] == 'pending') {
             $message = 'Payment Pending - ' . $data['trx_id'];
             $this->model_checkout_order->addOrderHistory($orderId, 1, $message);
         } else {
             $message = 'Payment Failed - ' . $data['trx_id'];
-            $this->model_checkout_order->addOrderHistory($orderId, 1, $message);
+            $this->model_checkout_order->addOrderHistory($orderId, 10, $message);
         }
 
         echo 'received with order ID ' . $orderId;
